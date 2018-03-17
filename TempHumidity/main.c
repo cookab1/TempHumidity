@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 
 int microsec = 0;
 int changeCount = 0;
@@ -17,37 +18,46 @@ int temperature = 0;
 int checkSum = 0;
 
 void recieveData();
+void reset();
+void setupTimer();
+void processData();
 
 int main(void)
 {
-    DDRK = 0x1;
-    PORTK = 0x1;
-    
+	PCICR = (1<<PCIE0); //enable group interrupts on PORTB
+	
     while (1) 
     {
         cli();
         //We're going to need... 
-        //an interupt handler
-        //a timer integration
+        //an interrupt handler
+        //and timer integration
+		
+		DDRB = 4;
+		PORTB = 4;
         
-       recieveData();
-    }
+        recieveData();
+		processData();
+		reset();
+	}
 }
 
 void recieveData() {
-    PORTK = 0;
+    PORTB = 0;
     _delay_ms(5);
-    PORTK = 1;
-    DDRK = 0;
+    PORTB = 4;
+    DDRB = 0;
     
     //start timer
     setupTimer();
     
     sei();
-    //ready to recieve the bits
+    //ready to receive the bits
+	_delay_ms(3000);
+	cli();
 }
 
-ISR(PCINT2_vect) 
+ISR(PCINT0_vect) {
     if(((changeCount % 2) == 1) && changeCount > 1) {
         if(changeCount < 34) {
             humidity <<= 1;
@@ -64,8 +74,8 @@ ISR(PCINT2_vect)
         } 
     }
     changeCount++;
-    if(changeCount == 82) {
-        reset();
+    if(changeCount == 83) {
+        //reset();  This is the end
     }       
 }
 
@@ -98,5 +108,15 @@ void setupTimer() {
     OCR1A = 0x0008;   
     
     microsec = 0;
+}
+
+//This method needs to calculate the humidity and temperature and print to the terminal
+void processData() {
+	DDRB = 1;
+	PORTB = 0;
+	
+	//sw_serial_puts("" + humidity / 10.0);
+	//temperature / 10.0;
+	//checkSum;
 }
 
