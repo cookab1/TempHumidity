@@ -8,7 +8,8 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
-#include <stdio.h>
+#include "PSerial.h"
+#include "EmSys.h"
 
 int microsec = 0;
 int changeCount = 0;
@@ -17,14 +18,24 @@ int humidity = 0;
 int temperature = 0;
 int checkSum = 0;
 
+static int port_mask = 1;
+
+unsigned char portNum;
+long baud;
+int framingParam;
+
 void recieveData();
 void reset();
 void setupTimer();
+void setupSerial();
 void processData();
+void print();
 
 int main(void)
 {
-	PCICR = (1<<PCIE0); //enable group interrupts on PORTB
+	PCICR = 1; //enable group interrupts on PORTB
+	PCMSK0 |= (1 << port_mask);
+	setupSerial();
 	
     while (1) 
     {
@@ -33,9 +44,9 @@ int main(void)
         //an interrupt handler
         //and timer integration
 		
-		DDRB = 4;
-		PORTB = 4;
-        
+		DDRB = (1 << port_mask);
+		PORTB |= (1 << port_mask);
+		
         recieveData();
 		processData();
 		reset();
@@ -43,9 +54,9 @@ int main(void)
 }
 
 void recieveData() {
-    PORTB = 0;
+    PORTB &= 0;
     _delay_ms(5);
-    PORTB = 4;
+    PORTB |= (1 << port_mask);
     DDRB = 0;
     
     //start timer
@@ -58,6 +69,7 @@ void recieveData() {
 }
 
 ISR(PCINT0_vect) {
+	print("Got into Pin Change Interrupt.");
     if(((changeCount % 2) == 1) && changeCount > 1) {
         if(changeCount < 34) {
             humidity <<= 1;
@@ -83,13 +95,20 @@ ISR(TIMER1_COMPA_vect) {
        microsec++;
 }
 
-void reset() {  
-    int microsec = 0;
+void reset() {
+	print("Reset.");
     int changeCount = 0;
 
     int humidity = 0;
     int temperature = 0;
     int checkSum = 0;
+}
+
+//This method needs to calculate the humidity and temperature and print to the terminal
+void processData() {	
+	print("Humidity: " + humidity);
+	//temperature / 10.0;
+	//checkSum;
 }
 
 void setupTimer() {
@@ -110,13 +129,15 @@ void setupTimer() {
     microsec = 0;
 }
 
-//This method needs to calculate the humidity and temperature and print to the terminal
-void processData() {
-	DDRB = 1;
-	PORTB = 0;
+void setupSerial() {	
+	portNum = 0;
+	baud = 19200L;
+	framingParam = SERIAL_8N1;
 	
-	//sw_serial_puts("" + humidity / 10.0);
-	//temperature / 10.0;
-	//checkSum;
+	PSerial_open(portNum, baud, framingParam);
+}
+
+void print(char *str) {
+	print_String(portNum, str);
 }
 
