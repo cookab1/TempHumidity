@@ -69,7 +69,6 @@ void recieveData() {
 }
 
 ISR(PCINT0_vect) {
-	print("Got into Pin Change Interrupt.");
     if(((changeCount % 2) == 1) && changeCount > 1) {
         if(changeCount < 34) {
             humidity <<= 1;
@@ -96,7 +95,6 @@ ISR(TIMER1_COMPA_vect) {
 }
 
 void reset() {
-	print("Reset.");
     int changeCount = 0;
 
     int humidity = 0;
@@ -106,7 +104,7 @@ void reset() {
 
 //This method needs to calculate the humidity and temperature and print to the terminal
 void processData() {	
-	print("Humidity: " + humidity);
+	print("Humidity: " + toString(humidity));
 	//temperature / 10.0;
 	//checkSum;
 }
@@ -139,5 +137,9 @@ void setupSerial() {
 
 void print(char *str) {
 	print_String(portNum, str);
+}
+
+char* toString(int num) {
+		
 }
 
