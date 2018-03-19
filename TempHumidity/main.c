@@ -9,6 +9,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include "PSerial.h"
+#include "string.h"
 #include "EmSys.h"
 
 int microsec = 0;
@@ -104,7 +105,7 @@ void reset() {
 
 //This method needs to calculate the humidity and temperature and print to the terminal
 void processData() {	
-	print("Humidity: " + toString(humidity));
+	print(toString(humidity ));
 	//temperature / 10.0;
 	//checkSum;
 }
@@ -139,7 +140,16 @@ void print(char *str) {
 	print_String(portNum, str);
 }
 
-char* toString(int num) {
-		
+char* toString(int num, int iteration, char *accum) {
+	
+	if(num == 0) {
+		return "";
+	} else {
+		accum = toString(num / 10, iteration++, accum);
+		strcat(((num % 10) + '0'), accum);
+		if(iteration == 1)
+			strcat('.', accum);
+		return accum;
+	}
 }
 
