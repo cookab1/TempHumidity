@@ -76,6 +76,7 @@
   <avrgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>C:\Users\andyr\Documents\Atmel Studio\TempHumidity\TempHumidity</Value>
+      <Value>C:\Users\cookab1\Documents\Atmel Studio\7.0\TempHumidity\TempHumidity</Value>
     </ListValues>
   </avrgcc.linker.libraries.LibrarySearchPaths>
   <avrgcc.assembler.general.IncludePaths>
@@ -123,6 +124,7 @@
   <avrgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>C:\Users\andyr\Documents\Atmel Studio\TempHumidity\TempHumidity</Value>
+      <Value>C:\Users\cookab1\Documents\Atmel Studio\7.0\TempHumidity\TempHumidity</Value>
     </ListValues>
   </avrgcc.linker.libraries.LibrarySearchPaths>
   <avrgcc.assembler.general.IncludePaths>

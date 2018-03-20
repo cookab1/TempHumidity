@@ -11,6 +11,7 @@
 #include "PSerial.h"
 #include "string.h"
 #include "EmSys.h"
+#include "stdio.h"
 
 int microsec = 0;
 int changeCount = 0;
@@ -31,6 +32,8 @@ void setupTimer();
 void setupSerial();
 void processData();
 void print();
+char * toString(int);
+char * toString_rec(int, int, char *);
 
 int main(void)
 {
@@ -65,16 +68,20 @@ void recieveData() {
     
     sei();
     //ready to receive the bits
-	_delay_ms(3000);
+	_delay_ms(1000);
 	cli();
 }
 
 ISR(PCINT0_vect) {
+	//char temp[3];
+	//sprintf(temp, "%d", microsec);
+	//print(temp);
     if(((changeCount % 2) == 1) && changeCount > 1) {
         if(changeCount < 34) {
             humidity <<= 1;
-            if(microsec > 45)
+            if(microsec > 45) {
                 humidity |= 1;
+				}
         } else if (changeCount < 66) {
             temperature <<= 1;
             if(microsec > 45)
@@ -92,22 +99,29 @@ ISR(PCINT0_vect) {
 }
 
 ISR(TIMER1_COMPA_vect) {
+	print("gets in.");
        microsec++;
 }
 
 void reset() {
-    int changeCount = 0;
+	//print(reset);
+    changeCount = 0;
 
-    int humidity = 0;
-    int temperature = 0;
-    int checkSum = 0;
+    humidity = 0;
+    temperature = 0;
+    checkSum = 0;
 }
 
 //This method needs to calculate the humidity and temperature and print to the terminal
-void processData() {	
-	print(toString(humidity ));
-	//temperature / 10.0;
-	//checkSum;
+void processData() {
+	char temp[3];
+	sprintf(temp, "%d", humidity);
+	print(temp);
+	sprintf(temp, "%d", temperature);
+	print(temp);
+	
+	sprintf(temp, "%d", checkSum);
+	print(temp);
 }
 
 void setupTimer() {
@@ -139,17 +153,24 @@ void setupSerial() {
 void print(char *str) {
 	print_String(portNum, str);
 }
+/*
+char* toString(int num) {
+	return toString_rec(num, 0, "");
+}
 
-char* toString(int num, int iteration, char *accum) {
+char* toString_rec(int num, int iteration, char *accum) {
 	
 	if(num == 0) {
-		return "";
+		return accum;
 	} else {
-		accum = toString(num / 10, iteration++, accum);
-		strcat(((num % 10) + '0'), accum);
+		toString_rec(num / 10, iteration++, accum);
+		char * add;
+		add[0] = ((num % 10) + '0');
+		strcat(add, accum);
 		if(iteration == 1)
-			strcat('.', accum);
+			strcat(".", accum);
 		return accum;
 	}
 }
+*/
 
