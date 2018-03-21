@@ -65,9 +65,6 @@ void recieveData() {
     DDRB = 0;
     
     microsec = 0;
-    //char temp[3];
-    //sprintf(temp, "%d", microsec);
-    //print(temp);
 	
     sei();
     //ready to receive the bits
@@ -134,7 +131,7 @@ void setupTimer() {
 	// turn on PWM mode:
     TCCR1B |= (1 << WGM02);
 	
-    // Set CS12 bit so timer runs at clock speed: (no pre-scaling)
+    // Set CS10 bit so timer runs at clock speed: (no pre-scaling)
     TCCR1B |= (1 << CS10); // Sets bit CS10 in TCCR1B
     
     // TOP
