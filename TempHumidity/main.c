@@ -13,12 +13,12 @@
 #include "EmSys.h"
 #include "stdio.h"
 
-int microsec = 0;
-int changeCount = 0;
+volatile int microsec = 0;
+volatile int changeCount = 0;
 
-int humidity = 0;
-int temperature = 0;
-int checkSum = 0;
+volatile int humidity = 0;
+volatile int temperature = 0;
+volatile int checkSum = 0;
 
 static int port_mask = 1;
 
@@ -40,6 +40,7 @@ int main(void)
 	PCICR = 1; //enable group interrupts on PORTB
 	PCMSK0 |= (1 << port_mask);
 	setupSerial();
+	setupTimer();
 	
     while (1) 
     {
@@ -63,12 +64,14 @@ void recieveData() {
     PORTB |= (1 << port_mask);
     DDRB = 0;
     
-    //start timer
-    setupTimer();
-    
+    microsec = 0;
+    //char temp[3];
+    //sprintf(temp, "%d", microsec);
+    //print(temp);
+	
     sei();
     //ready to receive the bits
-	_delay_ms(1000);
+	_delay_ms(3000);
 	cli();
 }
 
@@ -76,7 +79,8 @@ ISR(PCINT0_vect) {
 	//char temp[3];
 	//sprintf(temp, "%d", microsec);
 	//print(temp);
-    if(((changeCount % 2) == 1) && changeCount > 1) {
+    if(((changeCount & 1) == 1) && changeCount > 1) {
+		print("gets here");
         if(changeCount < 34) {
             humidity <<= 1;
             if(microsec > 45) {
@@ -94,13 +98,12 @@ ISR(PCINT0_vect) {
     }
     changeCount++;
     if(changeCount == 83) {
-        //reset();  This is the end
+        //This is the end of the transmission
     }       
 }
 
 ISR(TIMER1_COMPA_vect) {
-	print("gets in.");
-       microsec++;
+    microsec++;
 }
 
 void reset() {
@@ -128,18 +131,20 @@ void setupTimer() {
     TCCR1A = 0;    // set TCCR1A register to 0
     TCCR1B = 0; // set TCCR1B register to 0 
     
-	// turn on CTC mode:
-    TCCR1B |= (1 << WGM12);
-    
-	// enable timer compare interrupt:
-    TIMSK1 |= (1 << OCIE1A);
+	// turn on PWM mode:
+    TCCR1B |= (1 << WGM02);
+	
+    // Set CS12 bit so timer runs at clock speed: (no pre-scaling)
+    TCCR1B |= (1 << CS10); // Sets bit CS10 in TCCR1B
     
     // TOP
-    OCR2A = 0x0010;    
+    OCR0A = 0x0010;    
     // set compare match register to desired timer count:
-    OCR1A = 0x0008;   
+    OCR1A = 0x0008;
     
-    microsec = 0;
+    // enable timer compare interrupt:
+    TIMSK1 |= (1 << OCIE1A);
+    
 }
 
 void setupSerial() {	
@@ -153,24 +158,4 @@ void setupSerial() {
 void print(char *str) {
 	print_String(portNum, str);
 }
-/*
-char* toString(int num) {
-	return toString_rec(num, 0, "");
-}
-
-char* toString_rec(int num, int iteration, char *accum) {
-	
-	if(num == 0) {
-		return accum;
-	} else {
-		toString_rec(num / 10, iteration++, accum);
-		char * add;
-		add[0] = ((num % 10) + '0');
-		strcat(add, accum);
-		if(iteration == 1)
-			strcat(".", accum);
-		return accum;
-	}
-}
-*/
 
